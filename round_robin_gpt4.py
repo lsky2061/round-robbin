@@ -11,15 +11,33 @@ def update_scores(scores, head_to_head, winner, loser):
     head_to_head[(winner, loser)] = head_to_head.get((winner, loser), 0) + 1
     head_to_head[(loser, winner)] = head_to_head.get((loser, winner), 0) - 1
 
+
 def rank_items(scores, head_to_head):
     def sort_key(item):
+        item_name = item[0]
         wins, losses = item[1]
         total_matches = wins + losses
         win_percentage = wins / total_matches if total_matches > 0 else 0
-        return (win_percentage, -head_to_head.get((item[0], item[0]), 0))
+        return (win_percentage, item_name)
 
     ranked_items = sorted(scores.items(), key=sort_key, reverse=True)
+
+    # Handle tie-breaking based on head-to-head results
+    i = 0
+    while i < len(ranked_items) - 1:
+        j = i
+        # Find the range of items with the same win percentage
+        while j < len(ranked_items) - 1 and sort_key(ranked_items[j]) == sort_key(ranked_items[j + 1]):
+            j += 1
+        if j > i:
+            # Sort the tied items based on head-to-head results
+            tied_items = ranked_items[i:j + 1]
+            tied_items.sort(key=lambda x: head_to_head.get((x[0], tied_items[0][0]), 0), reverse=True)
+            ranked_items[i:j + 1] = tied_items
+        i = j + 1
+
     return ranked_items
+
 
 def main():
     file_name = input("Enter the name of the file containing the list of items: ")
@@ -59,6 +77,8 @@ def main():
         win_percentage = (wins / total_matches) * 100 if total_matches > 0 else 0
         print(f"{rank}. {item}: Wins - {wins}, Losses - {losses}, Win Percentage - {win_percentage:.2f}%")
         rank += 1
+
+    print(head_to_head)
 
 if __name__ == "__main__":
     main()
