@@ -1,7 +1,7 @@
 import datetime
+import json
 import tkinter as tk
-from tkinter import simpledialog
-
+import os
 
 def user_compare_gui(item1, item2, comparison_count):
     """Ask the user to compare two items via GUI and increase the comparison count."""
@@ -71,22 +71,57 @@ def save_sorted_items_to_file(sorted_items, comparison_count):
     print(f"Results saved to {filename}")
 
 
+def save_progress(items, comparison_count, filename):
+    """Save the current progress to a JSON file."""
+    progress = {
+        'items': items,
+        'comparison_count': comparison_count[0]
+    }
+    with open(filename, 'w') as file:
+        json.dump(progress, file)
+    print(f"Progress saved to {filename}")
+
+
+def load_progress(filename):
+    """Load the saved progress from a JSON file."""
+    with open(filename, 'r') as file:
+        progress = json.load(file)
+    return progress['items'], [progress['comparison_count']]
+
+
 if __name__ == "__main__":
-    filename = input("Enter the filename containing the list of items: ").strip()
+    import os
 
-    try:
-        items = read_items_from_file(filename)
-        if not items:
-            print("The file is empty or does not contain any valid items.")
+    action = input("Do you want to (L)oad progress or (S)tart a new session? (L/S): ").strip().upper()
+
+    if action == 'L':
+        progress_file = input("Enter the filename to load progress from: ").strip()
+        if os.path.isfile(progress_file):
+            items, comparison_count = load_progress(progress_file)
+            print("Progress loaded.")
         else:
-            print("Please help sort the following items by preference:")
-            comparison_count = [0]
-            sorted_items = merge_sort(items, comparison_count)
+            print(f"The file '{progress_file}' does not exist.")
+            items = None
+    else:
+        filename = input("Enter the filename containing the list of items: ").strip()
+        try:
+            items = read_items_from_file(filename)
+            if not items:
+                print("The file is empty or does not contain any valid items.")
+                items = None
+        except FileNotFoundError:
+            print(f"The file '{filename}' does not exist.")
+            items = None
 
-            print("Your sorted list is:")
-            print(sorted_items)
-            print(f"Number of comparisons made: {comparison_count[0]}")
+        comparison_count = [0]
 
-            save_sorted_items_to_file(sorted_items, comparison_count)
-    except FileNotFoundError:
-        print(f"The file '{filename}' does not exist.")
+    if items is not None:
+        print("Please help sort the following items by preference:")
+        sorted_items = merge_sort(items, comparison_count)
+
+        print("Your sorted list is:")
+        print(sorted_items)
+        print(f"Number of comparisons made: {comparison_count[0]}")
+
+        save_sorted_items_to_file(sorted_items, comparison_count)
+        save_progress(items, comparison_count, 'progress.json')
