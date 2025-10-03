@@ -1,0 +1,9 @@
+Salty
+Sour
+Vanilla
+Chocolate
+Mint
+Strawberry
+
+
+

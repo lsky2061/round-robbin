@@ -2,6 +2,7 @@ import datetime
 import json
 import tkinter as tk
 import os
+import sys
 
 def user_compare_gui(item1, item2, comparison_count):
     """Ask the user to compare two items via GUI and increase the comparison count."""
@@ -18,6 +19,7 @@ def user_compare_gui(item1, item2, comparison_count):
     tk.Label(root, text=f"Which do you prefer?", font=('Helvetica', 14)).pack(pady=10)
     tk.Button(root, text=item1, command=lambda: on_select(item1)).pack(pady=5)
     tk.Button(root, text=item2, command=lambda: on_select(item2)).pack(pady=5)
+    tk.Button(root, text="Save Progress", command=lambda: save_and_exit(root)).pack(pady=5)
 
     root.mainloop()
     comparison_count[0] += 1
@@ -82,12 +84,18 @@ def save_progress(items, comparison_count, filename):
     print(f"Progress saved to {filename}")
 
 
+
 def load_progress(filename):
     """Load the saved progress from a JSON file."""
     with open(filename, 'r') as file:
         progress = json.load(file)
     return progress['items'], [progress['comparison_count']]
 
+def save_and_exit(root):
+    """Save progress and exit the application."""
+    save_progress(items, comparison_count, 'progress.json')
+    root.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     import os
@@ -125,3 +133,4 @@ if __name__ == "__main__":
 
         save_sorted_items_to_file(sorted_items, comparison_count)
         save_progress(items, comparison_count, 'progress.json')
+
